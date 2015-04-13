@@ -41,7 +41,7 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
     (default power and amplitude)
     
     Outputs:
-    filename.ft -- FT of original data
+    filename.ft -- FT of original data, and ft processed by all metrics
     filename.hist -- record of highest values of computed metric for each run.
     '''
     
@@ -81,20 +81,24 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
     
         #print fap_vals
         #print amp_probs
-        fx0, fy0, nft  = ft_fix(fx0,fy0)
+        #fx0, fy0, nft  = ft_fix(fx0,fy0)
         fx0, amp0, nft = ft_fix(fx0,amp0)
-    
-        outarr = np.zeros((nft,3))
-        outarr[:,0] = fx0
-        outarr[:,1] = fy0
-        outarr[:,2] = amp0
+        
+        outarr = np.zeros((nft,2+len(metrics)))
+        outarr[:,0] = fx0        
+        outarr[:,1] = amp0
+        
+        #run all metrics on ft
+        for i,m in enumerate(metrics): outarr[:,2+i] = m(amp0)
+
         ofile1 = ofile0 + '.ft'
         nvals = len(fap_vals)
         stsig = ''
         for i in np.arange(nvals):
             stsig = stsig + '  {0:f}    {1:f}\n'.format(fap_vals[i],amp_probs[i])
         
-            head = 'Significance levels ( {0} ) for amplitude from formal periodogram criteria: '.format(nvals) + '\n    FAP       amplitude\n' + stsig + 'freq (hz)  power (normed) amplitude'
+        head = 'Significance levels ( {0} ) for amplitude from formal periodogram criteria: '.format(nvals) + '\n    FAP       amplitude\n' + stsig + 'freq(hz)  power(normed) amplitude'
+        for i in range(len(metrics)): head+= '     metric'+str(i)
         print 'Writing out FT to {0}...'.format(ofile1)
         np.savetxt(ofile1,outarr,header=head,fmt='%e')
         t3 = datetime.datetime.now()
@@ -124,7 +128,7 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
     print 'Finished shuffling data',nperm,'times\n'
     
     # print amaxvals
-    n=len(maxvals)
+    #n=len(maxvals)
     maxvals = np.array(maxvals)
     ofile2 = ofile0 + '.hist'
     print 'Writing maximum values to',ofile2
