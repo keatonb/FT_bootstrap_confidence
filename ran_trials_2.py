@@ -37,7 +37,8 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
     nperm -- number of random shufflings of data to make, i.e., 1000 or 1e4 (default 4, for speed)
     ofac -- the FT oversampling factor (default 10.)
     hifac -- upper limit of the frequency range (as fraction of the nyquist frequncy, [0-1]; default 1)
-    metrics -- list of passed (lambda) functions that are evaluated along randomized FTs, the max values being recorded.
+    metrics -- list of passed (lambda) functions that are evaluated along randomized FTs, the max values being recorded. 
+    (default power and amplitude)
     
     Outputs:
     filename.ft -- FT of original data
@@ -100,8 +101,9 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
         print 'Elapsed time: ',t3-t2,'\n'
     
     head0 = 'Generated from {0} using lomb.fasper() with ofac= {1}, hifac= {2}, npts= {3}'.format(file0,ofac,hifac,len(t))
-    pmaxvals = []
-    amaxvals = []
+  #  pmaxvals = []
+  #  amaxvals = []
+    maxvals = []    
     
     print '\nRandomly shuffling data',nperm,'times...\n'
     
@@ -111,20 +113,19 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
         lcper = permutation(lc)
         fx0,fy0, amp0, nout, jmax, fap_vals, amp_probs = lomb.fasper(t,lcper, ofac, hifac)
         t4 = datetime.datetime.now()
-        pmaxvals.append(np.max(metrics[0](amp0)))
-        amaxvals.append(np.max(metrics[1](amp0)))
+        thesemaxvals=[]
+        for m in metrics: thesemaxvals.append(np.max(m(amp0)))
+#        pmaxvals.append(np.max(metrics[0](amp0)))
+#        amaxvals.append(np.max(metrics[1](amp0)))
+        maxvals.append(thesemaxvals)
         print 'Elapsed time: ',t4-t3,'\n'
     
     
     print 'Finished shuffling data',nperm,'times\n'
     
     # print amaxvals
-    n=len(amaxvals)
-    amaxvals = np.array(amaxvals)
-    powvals = amaxvals**2
-    outarr = np.zeros((n,2))
-    outarr[:,0] = amaxvals
-    outarr[:,1] = powvals
+    n=len(maxvals)
+    maxvals = np.array(maxvals)
     ofile2 = ofile0 + '.hist'
     print 'Writing maximum values to',ofile2
     
@@ -132,7 +133,7 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
     head = 'Maximum values from {0} randomly shuffled trials of {1}\n'.format(nperm,file0)
     head += 'Values from the following function definitions:\n'
     for i,m in enumerate(metrics): head += str(i+1)+ inspect.getsource(m) + '\n'
-    np.savetxt(ofile2,outarr,header=head,fmt='%e')
+    np.savetxt(ofile2,maxvals,header=head,fmt='%e')
     
     print 'Total elapsed time: ',t4-t0,'\n'
     
