@@ -97,7 +97,7 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
         for i in np.arange(nvals):
             stsig = stsig + '  {0:f}    {1:f}\n'.format(fap_vals[i],amp_probs[i])
         
-        head = 'Significance levels ( {0} ) for amplitude from formal periodogram criteria: '.format(nvals) + '\n    FAP       amplitude\n' + stsig + 'freq(hz)  power(normed) amplitude'
+        head = 'Significance levels ( {0} ) for amplitude from formal periodogram criteria: '.format(nvals) + '\n    FAP       amplitude\n' + stsig + 'freq(hz)   amplitude'
         for i in range(len(metrics)): head+= '     metric'+str(i)
         print 'Writing out FT to {0}...'.format(ofile1)
         np.savetxt(ofile1,outarr,header=head,fmt='%e')
