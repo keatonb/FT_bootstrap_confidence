@@ -199,7 +199,7 @@ def fasper(x,y,ofac,hifac, MACC=4):
     prob = 1.0-(1.0-expy)**effm
 
 #  return wk1,wk2,amp,nout,jmax,prob
-  return wk1,wk2,amp,nout,jmax,FAPvals,ampvals
+  return wk1,wk2,amp,nout,jmax,FAPvals,ampvals,df
 
 def getSignificance(wk1, wk2, nout, ofac):
   """ returns the peak false alarm probabilities

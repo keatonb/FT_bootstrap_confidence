@@ -28,7 +28,7 @@ def ft_fix(x0,y0):
     return fx, fy, nft
 
 
-def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda x: x**2.]):
+def ran_trials(file0,nperm = 4,ofac=10.,lowfreq=0,hifreq=1e9,hifac=1.0,metrics = [lambda x: x, lambda x: x**2.]):
     '''
     Determine bootstrap significance threshold for FT of given data.
         
@@ -36,7 +36,9 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
     file0 -- filename of data to be shuffled and FTed (2 columns e.g. time,flux)
     nperm -- number of random shufflings of data to make, i.e., 1000 or 1e4 (default 4, for speed)
     ofac -- the FT oversampling factor (default 10.)
-    hifac -- upper limit of the frequency range (as fraction of the nyquist frequncy, [0-1]; default 1)
+    lowfreq -- lower limit of frequency range (in Hz; doesn't save time but helps with interpretation).
+    lowfreq -- upper limit of frequency range (in Hz; doesn't save time but helps with interpretation).
+    hifac -- upper limit of the *calculated* frequency range (as fraction of the nyquist frequncy, [0-1]; default 1)
     metrics -- list of passed (lambda) functions that are evaluated along randomized FTs, the max values being recorded. 
     (default power and amplitude)
     
@@ -75,7 +77,7 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
     
         print 'Computing fast Lomb-Scargle periodogram of unmodified data.'
         print 'This could take a while...'
-        fx0,fy0, amp0, nout, jmax, fap_vals, amp_probs = lomb.fasper(t,lc, ofac, hifac)
+        fx0,fy0, amp0, nout, jmax, fap_vals, amp_probs,df= lomb.fasper(t,lc, ofac, hifac)
         t2 = datetime.datetime.now()
         print 'Elapsed time: ',t2-t1,'\n'
     
@@ -89,7 +91,7 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
         outarr[:,1] = amp0
         
         #run all metrics on ft
-        for i,m in enumerate(metrics): outarr[:,2+i] = m(amp0)
+        for i,m in enumerate(metrics): outarr[:,2+i] = m(amp0,df)
 
         ofile1 = ofile0 + '.ft'
         nvals = len(fap_vals)
@@ -116,12 +118,15 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
         t3 = datetime.datetime.now()
         print 'Permutation {0}...'.format(i)
         lcper = permutation(lc)
-        fx0,fy0, amp0, nout, jmax, fap_vals, amp_probs = lomb.fasper(t,lcper, ofac, hifac)
+        fx0,fy0, amp0, nout, jmax, fap_vals, amp_probs, df = lomb.fasper(t,lcper, ofac, hifac)
         t4 = datetime.datetime.now()
         thesemaxvals=[]
-        for m in metrics: thesemaxvals.append(np.max(m(amp0)))
         thesemedvals=[]
-        for m in metrics: thesemedvals.append(np.median(m(amp0)))
+        for m in metrics: 
+            processed=m(amp0,df)
+            inrange=processed[np.where((fx0 > lowfreq) & (fx0 < hifreq))]
+            thesemaxvals.append(np.max(inrange))
+            thesemedvals.append(np.median(inrange))
 #        pmaxvals.append(np.max(metrics[0](amp0)))
 #        amaxvals.append(np.max(metrics[1](amp0)))
         maxvals.append(thesemaxvals)
