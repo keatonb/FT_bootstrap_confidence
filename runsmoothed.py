@@ -20,7 +20,7 @@ metrics.append(lambda x,w=510: convolve(x, Box1DKernel(w)))
 metrics.append(lambda x,w=510: convolve(x**2., Box1DKernel(w)))
 
 #run the trials
-ran_trials('exampledata.dat',nperm = 20,hifac=1.0,metrics=metrics)
+ran_trials('exampledata.dat',nperm = 10,hifac=0.2,metrics=metrics)
 
 #plot the results:
 
