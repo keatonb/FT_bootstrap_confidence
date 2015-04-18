@@ -108,6 +108,7 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
   #  pmaxvals = []
   #  amaxvals = []
     maxvals = []    
+    medvals = []
     
     print '\nRandomly shuffling data',nperm,'times...\n'
     
@@ -119,9 +120,12 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
         t4 = datetime.datetime.now()
         thesemaxvals=[]
         for m in metrics: thesemaxvals.append(np.max(m(amp0)))
+        thesemedvals=[]
+        for m in metrics: thesemedvals.append(np.median(m(amp0)))
 #        pmaxvals.append(np.max(metrics[0](amp0)))
 #        amaxvals.append(np.max(metrics[1](amp0)))
         maxvals.append(thesemaxvals)
+        medvals.append(thesemedvals)
         print 'Elapsed time: ',t4-t3,'\n'
     
     
@@ -130,14 +134,15 @@ def ran_trials(file0,nperm = 4,ofac=10.,hifac=1.0,metrics = [lambda x: x, lambda
     # print amaxvals
     #n=len(maxvals)
     maxvals = np.array(maxvals)
+    medvals = np.array(medvals)
     ofile2 = ofile0 + '.hist'
-    print 'Writing maximum values to',ofile2
+    print 'Writing maximum,median values to',ofile2
     
     # Write out the peak amplitude and power for each shuffled data set 
-    head = 'Maximum values from {0} randomly shuffled trials of {1}\n'.format(nperm,file0)
+    head = 'Maximum, then median values from {0} randomly shuffled trials of {1}\n'.format(nperm,file0)
     head += 'Values from the following function definitions:\n'
     for i,m in enumerate(metrics): head += str(i+1)+ inspect.getsource(m) + '\n'
-    np.savetxt(ofile2,maxvals,header=head,fmt='%e')
+    np.savetxt(ofile2,maxvals,medvals,header=head,fmt='%e')
     
     print 'Total elapsed time: ',t4-t0,'\n'
     
